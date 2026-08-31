@@ -1,0 +1,2340 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#05050d">
+<title>KOMA/鼓膜ぶち破れ</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&display=swap');
+
+:root {
+    --bg: #05050d;
+    --panel: rgba(13, 16, 31, 0.72);
+    --line: rgba(255,255,255,.14);
+    --pink: #ff1f9a;
+    --cyan: #00f5ff;
+    --green: #66ff8a;
+    --purple: #9b5cff;
+    --gold: #ffd84d;
+    --red: #ff304f;
+    --ease: cubic-bezier(.25,1,.5,1);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    min-height: 100%;
+}
+
+body {
+    min-height: 100vh;
+    overflow-x: hidden;
+    color: #fff;
+    background:
+        radial-gradient(circle at 15% 20%, rgba(0,245,255,.12), transparent 30%),
+        radial-gradient(circle at 85% 25%, rgba(255,31,154,.13), transparent 32%),
+        radial-gradient(circle at 50% 100%, rgba(155,92,255,.12), transparent 35%),
+        var(--bg);
+    font-family: 'Orbitron', 'Noto Sans JP', sans-serif;
+}
+
+/* 背景グリッド */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -3;
+    background-image:
+        linear-gradient(rgba(0,245,255,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,31,154,.045) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);
+}
+
+/* 背景の光 */
+body::after {
+    content: "";
+    position: fixed;
+    inset: -20%;
+    pointer-events: none;
+    z-index: -2;
+    background:
+        radial-gradient(circle at 30% 40%, rgba(0,245,255,.10), transparent 18%),
+        radial-gradient(circle at 70% 60%, rgba(255,31,154,.10), transparent 20%);
+    filter: blur(60px);
+    animation: backgroundFloat 8s var(--ease) infinite alternate;
+}
+
+@keyframes backgroundFloat {
+    from { transform: translate3d(-2%, -1%, 0) scale(1); }
+    to   { transform: translate3d(2%, 1%, 0) scale(1.08); }
+}
+
+button,
+input {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* =========================
+   共通
+========================= */
+
+.app {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+}
+
+.screen {
+    width: min(1100px, 100%);
+    animation: screenIn .65s var(--ease);
+}
+
+@keyframes screenIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.glass {
+    position: relative;
+    background: linear-gradient(
+        135deg,
+        rgba(255,255,255,.08),
+        rgba(255,255,255,.025)
+    );
+    border: 1px solid var(--line);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    box-shadow:
+        0 0 0 1px rgba(0,245,255,.025),
+        0 20px 80px rgba(0,0,0,.45),
+        inset 0 1px 0 rgba(255,255,255,.07);
+    clip-path: polygon(
+        0 14px,
+        14px 0,
+        calc(100% - 14px) 0,
+        100% 14px,
+        100% calc(100% - 14px),
+        calc(100% - 14px) 100%,
+        14px 100%,
+        0 calc(100% - 14px)
+    );
+}
+
+/* =========================
+   トップ
+========================= */
+
+.top-card {
+    text-align: center;
+    padding: clamp(42px, 8vw, 90px) 24px;
+}
+
+.eyebrow {
+    color: var(--cyan);
+    font-size: clamp(10px, 1.5vw, 14px);
+    letter-spacing: .4em;
+    margin-bottom: 20px;
+    text-shadow:
+        0 0 4px var(--cyan),
+        0 0 15px var(--cyan);
+}
+
+.logo {
+    margin: 0;
+    font-size: clamp(42px, 9vw, 104px);
+    line-height: .95;
+    font-weight: 900;
+    letter-spacing: -.06em;
+    background:
+        linear-gradient(
+            90deg,
+            #00f5ff,
+            #9b5cff 30%,
+            #ff1f9a 58%,
+            #ffd84d 80%,
+            #66ff8a
+        );
+    background-size: 250% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: rgbLogo 5s linear infinite;
+    filter:
+        drop-shadow(0 0 3px rgba(255,255,255,.9))
+        drop-shadow(0 0 12px rgba(0,245,255,.7))
+        drop-shadow(0 0 28px rgba(255,31,154,.5));
+}
+
+@keyframes rgbLogo {
+    to { background-position: 250% center; }
+}
+
+.logo-sub {
+    margin: 24px 0 42px;
+    color: rgba(255,255,255,.62);
+    font-size: clamp(11px, 2vw, 15px);
+    letter-spacing: .25em;
+}
+
+.start-btn,
+.rank-btn,
+.save-btn,
+.share-btn,
+.retry-btn {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.22);
+    color: #fff;
+    transition:
+        transform .35s var(--ease),
+        box-shadow .35s var(--ease),
+        border-color .35s var(--ease);
+}
+
+.start-btn {
+    width: min(600px, 100%);
+    min-height: 88px;
+    padding: 18px 28px;
+    font-size: clamp(22px, 5vw, 38px);
+    font-weight: 900;
+    letter-spacing: .12em;
+    background:
+        linear-gradient(
+            100deg,
+            rgba(0,245,255,.18),
+            rgba(155,92,255,.24),
+            rgba(255,31,154,.2)
+        );
+    box-shadow:
+        0 0 5px rgba(0,245,255,.5),
+        0 0 18px rgba(0,245,255,.3),
+        0 0 45px rgba(255,31,154,.2),
+        inset 0 0 25px rgba(255,255,255,.04);
+    clip-path: polygon(
+        0 18px,
+        18px 0,
+        calc(100% - 28px) 0,
+        100% 28px,
+        100% calc(100% - 18px),
+        calc(100% - 18px) 100%,
+        18px 100%,
+        0 calc(100% - 18px)
+    );
+}
+
+.start-btn::before,
+.rank-btn::before,
+.save-btn::before,
+.share-btn::before,
+.retry-btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -120%;
+    width: 70%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,.55),
+        transparent
+    );
+    transform: skewX(-20deg);
+    transition: left .7s var(--ease);
+}
+
+.start-btn:hover::before,
+.rank-btn:hover::before,
+.save-btn:hover::before,
+.share-btn:hover::before,
+.retry-btn:hover::before {
+    left: 150%;
+}
+
+.start-btn:hover,
+.rank-btn:hover,
+.save-btn:hover,
+.share-btn:hover,
+.retry-btn:hover {
+    transform: translateY(-4px) scale(1.025);
+}
+
+.start-btn:active,
+.rank-btn:active,
+.save-btn:active,
+.share-btn:active,
+.retry-btn:active {
+    transform: scale(.96);
+}
+
+.rank-btn {
+    display: block;
+    margin: 18px auto 0;
+    width: min(430px, 100%);
+    min-height: 58px;
+    background: rgba(255,255,255,.035);
+    font-size: 16px;
+    letter-spacing: .15em;
+    color: rgba(255,255,255,.88);
+    box-shadow:
+        0 0 8px rgba(155,92,255,.2),
+        inset 0 0 20px rgba(155,92,255,.04);
+}
+
+/* =========================
+   計測画面
+========================= */
+
+.measure-card {
+    padding: clamp(24px, 5vw, 55px);
+    text-align: center;
+}
+
+.measure-status {
+    min-height: 190px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.countdown {
+    font-size: clamp(110px, 28vw, 270px);
+    font-weight: 900;
+    line-height: 1;
+    color: #fff;
+    text-shadow:
+        0 0 4px #fff,
+        0 0 15px var(--cyan),
+        0 0 35px var(--cyan),
+        0 0 75px var(--pink);
+    animation: countdownZoom .85s var(--ease);
+}
+
+@keyframes countdownZoom {
+    0% {
+        opacity: 0;
+        transform: scale(2.8) translateZ(0);
+        filter: blur(8px);
+    }
+    45% {
+        opacity: 1;
+        transform: scale(1);
+        filter: blur(0);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(.65);
+    }
+}
+
+.shout {
+    font-size: clamp(52px, 15vw, 160px);
+    font-weight: 900;
+    color: #fff;
+    text-shadow:
+        0 0 3px #fff,
+        0 0 10px var(--red),
+        0 0 25px var(--red),
+        0 0 55px #ff001e,
+        0 0 100px #ff001e;
+    animation: shoutIn .5s var(--ease);
+}
+
+@keyframes shoutIn {
+    0% {
+        opacity: 0;
+        transform: scale(.2) rotate(-5deg);
+        filter: blur(15px);
+    }
+    55% {
+        opacity: 1;
+        transform: scale(1.15) rotate(1deg);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.measure-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.live-value {
+    padding: 18px;
+    border: 1px solid rgba(255,255,255,.1);
+    background: rgba(0,0,0,.24);
+}
+
+.live-label {
+    font-size: 11px;
+    color: rgba(255,255,255,.48);
+    letter-spacing: .2em;
+}
+
+.live-number {
+    margin-top: 6px;
+    font-size: clamp(32px, 7vw, 62px);
+    font-weight: 900;
+    color: var(--cyan);
+    text-shadow:
+        0 0 4px var(--cyan),
+        0 0 15px var(--cyan),
+        0 0 30px rgba(0,245,255,.55);
+}
+
+.meter-wrap {
+    position: relative;
+    height: 30px;
+    margin: 22px 0;
+    border: 1px solid rgba(255,255,255,.12);
+    background: rgba(0,0,0,.45);
+    overflow: hidden;
+}
+
+.meter {
+    height: 100%;
+    width: 0%;
+    background:
+        linear-gradient(
+            90deg,
+            #00f5ff,
+            #66ff8a 45%,
+            #ffd84d 72%,
+            #ff304f
+        );
+    box-shadow:
+        0 0 6px rgba(0,245,255,.8),
+        0 0 18px rgba(255,31,154,.5);
+    transition: width .08s var(--ease);
+}
+
+.meter::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        90deg,
+        transparent 0,
+        transparent 9px,
+        rgba(255,255,255,.2) 10px
+    );
+    opacity: .45;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 180px;
+    border: 1px solid rgba(0,245,255,.1);
+    background: rgba(0,0,0,.2);
+}
+
+.measure-hint {
+    margin-top: 18px;
+    color: rgba(255,255,255,.55);
+    font-size: 12px;
+    letter-spacing: .12em;
+}
+
+/* 100dB付近 */
+.hot {
+    animation: dangerPulse .5s var(--ease) infinite alternate;
+}
+
+@keyframes dangerPulse {
+    from {
+        box-shadow:
+            inset 0 0 30px rgba(255,0,30,.04);
+    }
+    to {
+        box-shadow:
+            inset 0 0 90px rgba(255,0,30,.28),
+            0 0 60px rgba(255,0,30,.18);
+    }
+}
+
+.shake {
+    animation: screenShake .28s steps(2, end);
+}
+
+@keyframes screenShake {
+    0% { transform: translate(0); }
+    20% { transform: translate(-9px, 5px); }
+    40% { transform: translate(8px, -5px); }
+    60% { transform: translate(-6px, -3px); }
+    80% { transform: translate(6px, 4px); }
+    100% { transform: translate(0); }
+}
+
+.flash {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    pointer-events: none;
+    background: white;
+    animation: flash .18s var(--ease) forwards;
+}
+
+@keyframes flash {
+    from { opacity: .95; }
+    to { opacity: 0; }
+}
+
+/* =========================
+   結果
+========================= */
+
+.result-card {
+    padding: clamp(25px, 5vw, 60px);
+    text-align: center;
+}
+
+.result-kicker {
+    color: var(--cyan);
+    font-size: 12px;
+    letter-spacing: .35em;
+}
+
+.result-title {
+    margin: 10px 0 28px;
+    font-size: clamp(34px, 8vw, 78px);
+    font-weight: 900;
+    text-shadow:
+        0 0 5px rgba(255,255,255,.7),
+        0 0 15px var(--pink),
+        0 0 35px var(--pink),
+        0 0 70px rgba(0,245,255,.35);
+}
+
+.result-values {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.result-box {
+    padding: 22px;
+    border: 1px solid rgba(255,255,255,.12);
+    background: rgba(0,0,0,.25);
+}
+
+.result-label {
+    color: rgba(255,255,255,.45);
+    font-size: 11px;
+    letter-spacing: .2em;
+}
+
+.result-number {
+    margin-top: 8px;
+    font-size: clamp(40px, 10vw, 92px);
+    line-height: 1;
+    font-weight: 900;
+}
+
+.score-number {
+    color: var(--gold);
+    text-shadow:
+        0 0 4px var(--gold),
+        0 0 15px var(--gold),
+        0 0 35px rgba(255,216,77,.65);
+}
+
+.db-number {
+    color: var(--pink);
+    text-shadow:
+        0 0 4px var(--pink),
+        0 0 15px var(--pink),
+        0 0 35px rgba(255,31,154,.65);
+}
+
+.rank-title {
+    margin: 34px auto 28px;
+    width: fit-content;
+    max-width: 100%;
+    padding: 15px 25px;
+    border: 1px solid rgba(0,245,255,.4);
+    background: linear-gradient(
+        135deg,
+        rgba(0,245,255,.1),
+        rgba(255,31,154,.12)
+    );
+    font-size: clamp(22px, 5vw, 44px);
+    font-weight: 900;
+    color: #fff;
+    text-shadow:
+        0 0 4px #fff,
+        0 0 15px var(--cyan),
+        0 0 35px var(--pink);
+    animation: stamp .7s var(--ease) both;
+    clip-path: polygon(
+        0 10px,
+        10px 0,
+        calc(100% - 10px) 0,
+        100% 10px,
+        100% calc(100% - 10px),
+        calc(100% - 10px) 100%,
+        10px 100%,
+        0 calc(100% - 10px)
+    );
+}
+
+@keyframes stamp {
+    0% {
+        opacity: 0;
+        transform: scale(3) rotate(-8deg);
+        filter: blur(12px);
+    }
+    55% {
+        opacity: 1;
+        transform: scale(.92) rotate(2deg);
+    }
+    100% {
+        transform: scale(1) rotate(0);
+    }
+}
+
+.save-area {
+    width: min(650px, 100%);
+    margin: 28px auto 0;
+    padding: 20px;
+    border: 1px solid rgba(255,216,77,.25);
+    background: rgba(255,216,77,.035);
+}
+
+.save-message {
+    margin-bottom: 13px;
+    color: var(--gold);
+    font-size: 13px;
+    letter-spacing: .08em;
+}
+
+.name-input {
+    width: 100%;
+    min-height: 58px;
+    padding: 12px 16px;
+    border: 1px solid rgba(0,245,255,.3);
+    outline: none;
+    color: #fff;
+    background: rgba(0,0,0,.35);
+}
+
+.name-input:focus {
+    border-color: var(--cyan);
+    box-shadow:
+        0 0 8px rgba(0,245,255,.35),
+        0 0 25px rgba(0,245,255,.12);
+}
+
+.action-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 13px;
+}
+
+.save-btn,
+.share-btn,
+.retry-btn {
+    min-height: 52px;
+    padding: 12px 20px;
+    font-weight: 800;
+    letter-spacing: .08em;
+}
+
+.save-btn {
+    flex: 1;
+    background: linear-gradient(
+        135deg,
+        rgba(0,245,255,.16),
+        rgba(102,255,138,.13)
+    );
+}
+
+.share-btn {
+    flex: 1;
+    background: linear-gradient(
+        135deg,
+        rgba(255,255,255,.08),
+        rgba(255,31,154,.13)
+    );
+}
+
+.retry-btn {
+    margin-top: 18px;
+    min-width: min(400px, 100%);
+    background: rgba(255,255,255,.045);
+}
+
+/* =========================
+   ランキングモーダル
+========================= */
+
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 18px;
+    background: rgba(0,0,0,.68);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+}
+
+.modal-panel {
+    width: min(950px, 100%);
+    max-height: min(88vh, 900px);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    animation: modalIn .5s var(--ease);
+    border: 1px solid rgba(0,245,255,.22);
+    background:
+        linear-gradient(
+            135deg,
+            rgba(11,17,34,.9),
+            rgba(20,10,30,.88)
+        );
+    box-shadow:
+        0 0 8px rgba(0,245,255,.18),
+        0 0 35px rgba(255,31,154,.12),
+        0 30px 100px rgba(0,0,0,.6);
+}
+
+@keyframes modalIn {
+    from {
+        opacity: 0;
+        transform: scale(.92) translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    padding-bottom: 17px;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.modal-title {
+    margin: 0;
+    font-size: clamp(20px, 5vw, 34px);
+    text-shadow:
+        0 0 8px var(--cyan),
+        0 0 22px rgba(0,245,255,.5);
+}
+
+.close-btn {
+    width: 44px;
+    height: 44px;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,.18);
+    background: rgba(255,255,255,.05);
+    font-size: 22px;
+}
+
+.rank-scroll {
+    margin-top: 15px;
+    overflow: auto;
+    overscroll-behavior: contain;
+    min-height: 0;
+}
+
+.rank-head,
+.rank-row {
+    display: grid;
+    grid-template-columns: 80px minmax(120px, 1fr) 150px 130px;
+    gap: 10px;
+    align-items: center;
+}
+
+.rank-head {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 12px;
+    color: rgba(255,255,255,.48);
+    background: rgba(5,5,13,.92);
+    font-size: 11px;
+    letter-spacing: .12em;
+}
+
+.rank-row {
+    min-height: 58px;
+    margin-bottom: 6px;
+    padding: 8px 12px;
+    border: 1px solid rgba(255,255,255,.065);
+    background: rgba(255,255,255,.025);
+    transition: transform .3s var(--ease);
+}
+
+.rank-row:hover {
+    transform: translateX(5px);
+    border-color: rgba(0,245,255,.25);
+}
+
+.rank-pos {
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.rank-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rank-score {
+    color: var(--gold);
+    font-weight: 800;
+}
+
+.rank-db {
+    color: var(--pink);
+    font-weight: 800;
+}
+
+/* TOP3 */
+.rank-row.rank-1 {
+    border-color: rgba(255,216,77,.7);
+    background:
+        linear-gradient(
+            90deg,
+            rgba(255,216,77,.16),
+            rgba(255,216,77,.035)
+        );
+    box-shadow:
+        0 0 5px rgba(255,216,77,.45),
+        0 0 20px rgba(255,216,77,.18),
+        inset 0 0 25px rgba(255,216,77,.05);
+}
+
+.rank-row.rank-2 {
+    border-color: rgba(220,230,240,.65);
+    background:
+        linear-gradient(
+            90deg,
+            rgba(220,230,240,.13),
+            rgba(220,230,240,.025)
+        );
+    box-shadow:
+        0 0 5px rgba(220,230,240,.4),
+        0 0 20px rgba(220,230,240,.12);
+}
+
+.rank-row.rank-3 {
+    border-color: rgba(205,127,50,.7);
+    background:
+        linear-gradient(
+            90deg,
+            rgba(205,127,50,.16),
+            rgba(205,127,50,.025)
+        );
+    box-shadow:
+        0 0 5px rgba(205,127,50,.4),
+        0 0 20px rgba(205,127,50,.12);
+}
+
+.rank-medal {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 32px;
+    border-radius: 8px;
+    font-weight: 900;
+}
+
+.rank-1 .rank-medal {
+    color: #3a2900;
+    background: linear-gradient(#fff3a1, #ffd84d);
+    box-shadow: 0 0 18px rgba(255,216,77,.75);
+}
+
+.rank-2 .rank-medal {
+    color: #20252c;
+    background: linear-gradient(#fff, #bcc7d2);
+    box-shadow: 0 0 18px rgba(220,230,240,.55);
+}
+
+.rank-3 .rank-medal {
+    color: #351b0b;
+    background: linear-gradient(#ffc58d, #cd7f32);
+    box-shadow: 0 0 18px rgba(205,127,50,.6);
+}
+
+.empty-ranking {
+    padding: 50px 20px;
+    text-align: center;
+    color: rgba(255,255,255,.4);
+}
+
+/* =========================
+   レスポンシブ
+========================= */
+
+@media (max-width: 700px) {
+    .app {
+        padding: 12px;
+    }
+
+    .measure-info,
+    .result-values {
+        grid-template-columns: 1fr;
+    }
+
+    .action-row {
+        flex-direction: column;
+    }
+
+    .rank-head,
+    .rank-row {
+        grid-template-columns: 55px minmax(120px, 1fr) 100px 90px;
+        font-size: 12px;
+    }
+
+    .rank-head {
+        font-size: 9px;
+    }
+
+    .rank-pos {
+        font-size: 14px;
+    }
+
+    .modal-panel {
+        padding: 15px;
+    }
+
+    canvas {
+        height: 145px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app" id="app">
+
+    <!-- =====================
+         TOP
+    ====================== -->
+    <section id="topScreen" class="screen">
+        <div class="glass top-card">
+
+            <div class="eyebrow">LOUDNESS // CYBER ARENA</div>
+
+            <h1 class="logo">
+                KOMA/<br class="mobile-break">
+                鼓膜ぶち破れ
+            </h1>
+
+            <p class="logo-sub">
+                YOUR VOICE. YOUR LIMIT. BREAK THE METER.
+            </p>
+
+            <button id="startBtn" class="start-btn">
+                ゲームスタート
+            </button>
+
+            <button id="rankingBtn" class="rank-btn">
+                RANKING // ランキングを見る
+            </button>
+
+        </div>
+    </section>
+
+
+    <!-- =====================
+         MEASURE
+    ====================== -->
+    <section id="measureScreen" class="screen hidden">
+        <div class="glass measure-card" id="measureCard">
+
+            <div class="measure-status" id="measureStatus">
+                <div class="countdown" id="countdown">3</div>
+            </div>
+
+            <div class="measure-info">
+
+                <div class="live-value">
+                    <div class="live-label">LIVE dB</div>
+                    <div class="live-number">
+                        <span id="liveDb">5.0</span>
+                        <small>dB</small>
+                    </div>
+                </div>
+
+                <div class="live-value">
+                    <div class="live-label">LIVE SCORE</div>
+                    <div class="live-number">
+                        <span id="liveScore">500</span>
+                        <small>PT</small>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="meter-wrap">
+                <div class="meter" id="meter"></div>
+            </div>
+
+            <canvas id="visualizer"></canvas>
+
+            <div class="measure-hint">
+                MAXIMUM LOUDNESS // 3 SEC MEASUREMENT
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- =====================
+         RESULT
+    ====================== -->
+    <section id="resultScreen" class="screen hidden">
+        <div class="glass result-card">
+
+            <div class="result-kicker">
+                MEASUREMENT COMPLETE
+            </div>
+
+            <h2 class="result-title">
+                RESULT
+            </h2>
+
+            <div class="result-values">
+
+                <div class="result-box">
+                    <div class="result-label">FINAL SCORE</div>
+                    <div class="result-number score-number">
+                        <span id="finalScore">0</span>
+                        <small>PT</small>
+                    </div>
+                </div>
+
+                <div class="result-box">
+                    <div class="result-label">MAX dB</div>
+                    <div class="result-number db-number">
+                        <span id="finalDb">0.0</span>
+                        <small>dB</small>
+                    </div>
+                </div>
+
+            </div>
+
+            <div id="rankTitle" class="rank-title">
+                無音（生きてる？）
+            </div>
+
+            <div id="saveArea" class="save-area hidden">
+
+                <div class="save-message">
+                    ★ TOP 1000 // RANKING ENTRY AVAILABLE ★
+                </div>
+
+                <input
+                    id="nameInput"
+                    class="name-input"
+                    maxlength="20"
+                    autocomplete="off"
+                    placeholder="名前を入力してください"
+                >
+
+                <div class="action-row">
+                    <button id="saveBtn" class="save-btn">
+                        ランキングに保存
+                    </button>
+
+                    <button id="shareBtn" class="share-btn">
+                        𝕏 Xでシェアする
+                    </button>
+                </div>
+
+            </div>
+
+            <div id="nonRankShare" class="action-row hidden">
+                <button id="shareBtn2" class="share-btn">
+                    𝕏 Xでシェアする
+                </button>
+            </div>
+
+            <button id="retryBtn" class="retry-btn">
+                もう一度叫ぶ
+            </button>
+
+        </div>
+    </section>
+
+</div>
+
+
+<!-- =====================
+     RANKING MODAL
+===================== -->
+<div id="rankingModal" class="modal hidden">
+
+    <div class="modal-panel">
+
+        <div class="modal-header">
+
+            <h2 class="modal-title">
+                RANKING // TOP 1000
+            </h2>
+
+            <button id="closeRanking" class="close-btn">
+                ×
+            </button>
+
+        </div>
+
+        <div class="rank-scroll">
+
+            <div class="rank-head">
+                <div>順位</div>
+                <div>名前</div>
+                <div>スコア</div>
+                <div>dB</div>
+            </div>
+
+            <div id="rankingList"></div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+"use strict";
+
+/* =========================================================
+   設定
+========================================================= */
+
+const MAX_RANKING = 1000;
+const RANKING_API = "/api/ranking";
+
+/*
+ * Xシェア用設定
+ * 必要ならここだけ変更できます。
+ */
+const SHARE_HASHTAGS = "#KOMA #鼓膜ぶち破れ #大声計測ゲーム";
+
+
+/* =========================================================
+   DOM
+========================================================= */
+
+const topScreen = document.getElementById("topScreen");
+const measureScreen = document.getElementById("measureScreen");
+const resultScreen = document.getElementById("resultScreen");
+
+const startBtn = document.getElementById("startBtn");
+const rankingBtn = document.getElementById("rankingBtn");
+const retryBtn = document.getElementById("retryBtn");
+
+const measureStatus = document.getElementById("measureStatus");
+const measureCard = document.getElementById("measureCard");
+const countdown = document.getElementById("countdown");
+
+const liveDb = document.getElementById("liveDb");
+const liveScore = document.getElementById("liveScore");
+const meter = document.getElementById("meter");
+
+const visualizer = document.getElementById("visualizer");
+const ctx = visualizer.getContext("2d");
+
+const finalScore = document.getElementById("finalScore");
+const finalDb = document.getElementById("finalDb");
+const rankTitle = document.getElementById("rankTitle");
+
+const saveArea = document.getElementById("saveArea");
+const nameInput = document.getElementById("nameInput");
+const saveBtn = document.getElementById("saveBtn");
+
+const shareBtn = document.getElementById("shareBtn");
+const shareBtn2 = document.getElementById("shareBtn2");
+
+const rankingModal = document.getElementById("rankingModal");
+const closeRanking = document.getElementById("closeRanking");
+const rankingList = document.getElementById("rankingList");
+
+
+/* =========================================================
+   Audio variables
+========================================================= */
+
+let audioContext = null;
+let analyser = null;
+let microphone = null;
+let mediaStream = null;
+let dataArray = null;
+let animationId = null;
+
+let measuring = false;
+let maxDb = 0;
+let maxScore = 0;
+
+
+/* =========================================================
+   画面切り替え
+========================================================= */
+
+function showScreen(screen) {
+    [topScreen, measureScreen, resultScreen].forEach(s => {
+        s.classList.add("hidden");
+    });
+
+    screen.classList.remove("hidden");
+}
+
+
+/* =========================================================
+   ランキング
+========================================================= */
+
+async function getRanking() {
+    try {
+        const response = await fetch(`${RANKING_API}?limit=${MAX_RANKING}`, {
+            method: "GET",
+            headers: { "Accept": "application/json" },
+            cache: "no-store"
+        });
+
+        if (!response.ok) {
+            throw new Error(`ランキング取得失敗: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return Array.isArray(data.ranking) ? data.ranking : [];
+
+    } catch (error) {
+        console.warn("ランキングデータを読み込めませんでした。", error);
+        return [];
+    }
+}
+
+async function saveRankingEntry(name, score, db) {
+    try {
+        const response = await fetch(RANKING_API, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify({
+                name: String(name || "名無し").slice(0, 20),
+                score: Math.floor(score),
+                db: Number(db.toFixed(1))
+            })
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(data.error || `ランキング保存失敗: ${response.status}`);
+        }
+
+        return data;
+
+    } catch (error) {
+        console.warn("ランキングを保存できませんでした。", error);
+        return {
+            ok: false,
+            accepted: false,
+            error: error.message || "ランキング保存に失敗しました。"
+        };
+    }
+}
+
+/* =========================================================
+   ランキング表示
+========================================================= */
+
+async function renderRanking() {
+
+    rankingList.innerHTML = `
+        <div class="empty-ranking">ランキングを読み込み中...</div>
+    `;
+
+    const ranking = await getRanking();
+
+    rankingList.innerHTML = "";
+
+    if (ranking.length === 0) {
+
+        const empty = document.createElement("div");
+        empty.className = "empty-ranking";
+        empty.textContent =
+            "まだランキングデータがありません。最初の王者になれ！";
+
+        rankingList.appendChild(empty);
+        return;
+    }
+
+    ranking.forEach((entry, index) => {
+
+        const rank = index + 1;
+
+        const row = document.createElement("div");
+        row.className = "rank-row";
+
+        if (rank <= 3) {
+            row.classList.add(`rank-${rank}`);
+        }
+
+        const pos = document.createElement("div");
+        pos.className = "rank-pos";
+
+        if (rank <= 3) {
+
+            const medal = document.createElement("span");
+            medal.className = "rank-medal";
+
+            if (rank === 1) medal.textContent = "♛ 1";
+            if (rank === 2) medal.textContent = "♜ 2";
+            if (rank === 3) medal.textContent = "♞ 3";
+
+            pos.appendChild(medal);
+
+        } else {
+
+            pos.textContent = `${rank}位`;
+        }
+
+        const name = document.createElement("div");
+        name.className = "rank-name";
+        name.textContent = entry.name || "名無し";
+
+        const score = document.createElement("div");
+        score.className = "rank-score";
+        score.textContent =
+            `${Number(entry.score).toLocaleString()}点`;
+
+        const db = document.createElement("div");
+        db.className = "rank-db";
+        db.textContent =
+            `${Number(entry.db).toFixed(1)} dB`;
+
+        row.appendChild(pos);
+        row.appendChild(name);
+        row.appendChild(score);
+        row.appendChild(db);
+
+        rankingList.appendChild(row);
+    });
+}
+
+/* =========================================================
+   称号
+   ========================================================= */
+
+function getTitle(db) {
+
+    /*
+     * 境界値が重複しないよう、
+     * 上から順番に判定します。
+     */
+
+    if (db <= 10) {
+        return "無音（生きてる？）";
+
+    } else if (db <= 15) {
+        return "死体（気配がなさすぎて生体反応を感じられない）";
+
+    } else if (db <= 20) {
+        return "蚊の羽音の方がまだ存在感あるよ";
+
+    } else if (db <= 25) {
+        return "コミュ障のボソボソ（主語だけでも聞き取らせてくれ）";
+
+    } else if (db <= 30) {
+        return "吐息（そんな省エネで会話するな）";
+
+    } else if (db <= 35) {
+        return "すれ違い通信（誰の記憶にも残らないすれ違いレベル）";
+
+    } else if (db <= 40) {
+        return "陰キャ（声が小さすぎて存在がフェードアウトしてる）";
+
+    } else if (db <= 45) {
+        return "背景（タンスや机と同レベルの存在感）";
+
+    } else if (db <= 50) {
+        return "モブ（可もなく不可もない、ただの通行人A）";
+
+    } else if (db <= 60) {
+        return "2軍の限界（陽キャの後ろで愛想笑いしてろ）";
+
+    } else if (db <= 70) {
+        return "一般人（つまらん。もっと魂を削って叫べ）";
+
+    } else if (db <= 80) {
+        return "うるさいさい黙れ（クラスで浮いてることに気づけ）";
+
+    } else if (db <= 90) {
+        return "騒音公害（シンプルにだまれ、鼓膜が迷惑してる）";
+
+    } else if (db <= 100) {
+        return "人間スピーカー（もう声出すな）";
+
+    } else if (db < 150) {
+        return "野獣の咆哮（やりますねぇ）";
+
+    } else {
+        return "ンニィィィィ！！！";
+    }
+}
+
+
+/* =========================================================
+   ★★★★★
+   確定指定されたdB計算ロジック
+   ★★★★★
+
+   RMS
+       ↓
+   rawdB = 20 * log10(rms)
+       ↓
+   -45dBFS以下 → 5dB
+       ↓
+   -45〜0dBFSを0〜1に正規化
+       ↓
+   3乗カーブ
+       ↓
+   10〜110dB
+
+   ※ここでは意図的にこの式を変更していません。
+========================================================= */
+
+function calculateGameDb(rms) {
+
+    // 1. RMSから生のデシベル（負の値、無音なら-60以下、最大で0）
+    let rawdB =
+        20 * Math.log10(
+            Math.max(rms, 0.0001)
+        );
+
+    let currentdB;
+
+    // 2. 超強力なノイズゲート
+    // 生のdBが -45dBFS 以下なら強制的に5dB
+    if (rawdB < -45) {
+
+        currentdB = 5.0;
+
+    } else {
+
+        // 3. 非線形マッピング
+        // -45 を0、0を1に正規化
+
+        let normalized =
+            (rawdB - (-45)) / (0 - (-45));
+
+        normalized =
+            Math.max(
+                0,
+                Math.min(1, normalized)
+            );
+
+        // 3乗カーブ
+        let curve =
+            Math.pow(normalized, 3);
+
+        // 10dB〜110dB
+        currentdB =
+            10 + (curve * 100);
+    }
+
+    // 4. スコア
+    let currentScore =
+        Math.floor(
+            (currentdB / 100) * 10000
+        );
+
+    return {
+        rawdB,
+        db: currentdB,
+        score: currentScore
+    };
+}
+
+
+/* =========================================================
+   RMS計算
+========================================================= */
+
+function calculateRMS() {
+
+    if (!analyser || !dataArray) {
+        return 0;
+    }
+
+    analyser.getFloatTimeDomainData(dataArray);
+
+    let sum = 0;
+
+    for (let i = 0; i < dataArray.length; i++) {
+        const sample = dataArray[i];
+        sum += sample * sample;
+    }
+
+    return Math.sqrt(
+        sum / dataArray.length
+    );
+}
+
+
+/* =========================================================
+   Audio初期化
+========================================================= */
+
+async function initMicrophone() {
+
+    /*
+     * ユーザーがスタートボタンを押したイベントから
+     * getUserMediaを呼び出します。
+     *
+     * AGC / ノイズ抑制 / エコーキャンセルをOFF。
+     */
+
+    mediaStream =
+        await navigator.mediaDevices.getUserMedia({
+            audio: {
+                echoCancellation: false,
+                noiseSuppression: false,
+                autoGainControl: false
+            }
+        });
+
+    audioContext =
+        new (window.AudioContext ||
+             window.webkitAudioContext)();
+
+    if (audioContext.state === "suspended") {
+        await audioContext.resume();
+    }
+
+    microphone =
+        audioContext.createMediaStreamSource(
+            mediaStream
+        );
+
+    analyser =
+        audioContext.createAnalyser();
+
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.72;
+
+    /*
+     * Float32Arrayで-1〜+1の時間領域データを取得。
+     */
+    dataArray =
+        new Float32Array(
+            analyser.fftSize
+        );
+
+    microphone.connect(analyser);
+}
+
+
+/* =========================================================
+   Audio停止
+========================================================= */
+
+function stopMicrophone() {
+
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+    }
+
+    if (mediaStream) {
+
+        mediaStream
+            .getTracks()
+            .forEach(track => track.stop());
+
+        mediaStream = null;
+    }
+
+    if (audioContext) {
+
+        audioContext
+            .close()
+            .catch(() => {});
+
+        audioContext = null;
+    }
+
+    analyser = null;
+    microphone = null;
+    dataArray = null;
+}
+
+
+/* =========================================================
+   Visualizer
+========================================================= */
+
+function resizeCanvas() {
+
+    const rect =
+        visualizer.getBoundingClientRect();
+
+    const dpr =
+        Math.min(window.devicePixelRatio || 1, 2);
+
+    visualizer.width =
+        rect.width * dpr;
+
+    visualizer.height =
+        rect.height * dpr;
+
+    ctx.setTransform(
+        dpr, 0,
+        0, dpr,
+        0, 0
+    );
+}
+
+window.addEventListener(
+    "resize",
+    resizeCanvas
+);
+
+resizeCanvas();
+
+
+function drawVisualizer() {
+
+    const width =
+        visualizer.clientWidth;
+
+    const height =
+        visualizer.clientHeight;
+
+    ctx.clearRect(
+        0,
+        0,
+        width,
+        height
+    );
+
+    if (!analyser || !dataArray) {
+        return;
+    }
+
+    analyser.getFloatTimeDomainData(dataArray);
+
+    /*
+     * RMSを可視化用にも取得。
+     */
+    let sum = 0;
+
+    for (let i = 0; i < dataArray.length; i++) {
+        sum += dataArray[i] * dataArray[i];
+    }
+
+    const rms =
+        Math.sqrt(sum / dataArray.length);
+
+    const result =
+        calculateGameDb(rms);
+
+    const intensity =
+        Math.min(1, result.db / 100);
+
+    /*
+     * 周波数スペクトラム取得。
+     */
+    const freqData =
+        new Uint8Array(
+            analyser.frequencyBinCount
+        );
+
+    analyser.getByteFrequencyData(freqData);
+
+    const bars = 72;
+    const step =
+        Math.max(
+            1,
+            Math.floor(freqData.length / bars)
+        );
+
+    const barWidth =
+        width / bars;
+
+    for (let i = 0; i < bars; i++) {
+
+        const value =
+            freqData[i * step] / 255;
+
+        const h =
+            Math.pow(value, .72) *
+            height *
+            (.3 + intensity * .85);
+
+        const x =
+            i * barWidth;
+
+        const y =
+            height - h;
+
+        /*
+         * CanvasのRGBグラデーション。
+         */
+        const gradient =
+            ctx.createLinearGradient(
+                0, height,
+                0, 0
+            );
+
+        gradient.addColorStop(0, "#00f5ff");
+        gradient.addColorStop(.45, "#9b5cff");
+        gradient.addColorStop(.75, "#ff1f9a");
+        gradient.addColorStop(1, "#ff304f");
+
+        ctx.fillStyle = gradient;
+
+        ctx.shadowBlur =
+            5 + intensity * 22;
+
+        ctx.shadowColor =
+            intensity > .75
+                ? "#ff304f"
+                : "#00f5ff";
+
+        ctx.fillRect(
+            x + 1,
+            y,
+            Math.max(1, barWidth - 2),
+            h
+        );
+    }
+
+    ctx.shadowBlur = 0;
+
+    /*
+     * 中央波形。
+     */
+    ctx.beginPath();
+
+    const sliceWidth =
+        width / dataArray.length;
+
+    let x = 0;
+
+    for (let i = 0; i < dataArray.length; i++) {
+
+        const v = dataArray[i];
+
+        const y =
+            height / 2 +
+            v * height * 1.5;
+
+        if (i === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+
+        x += sliceWidth;
+    }
+
+    ctx.strokeStyle =
+        intensity > .8
+            ? "#ff304f"
+            : "#ffffff";
+
+    ctx.lineWidth = 1.5;
+
+    ctx.shadowBlur =
+        8 + intensity * 20;
+
+    ctx.shadowColor =
+        intensity > .8
+            ? "#ff304f"
+            : "#00f5ff";
+
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+
+    if (measuring) {
+        animationId =
+            requestAnimationFrame(
+                drawVisualizer
+            );
+    }
+}
+
+
+/* =========================================================
+   計測
+========================================================= */
+
+async function startGame() {
+
+    startBtn.disabled = true;
+
+    try {
+
+        if (!navigator.mediaDevices ||
+            !navigator.mediaDevices.getUserMedia) {
+
+            throw new Error(
+                "このブラウザではマイク入力を利用できません。"
+            );
+        }
+
+        /*
+         * HTTPSまたはlocalhostなど、
+         * ブラウザが許可する安全なコンテキストで
+         * 実行してください。
+         */
+        await initMicrophone();
+
+        showScreen(measureScreen);
+
+        maxDb = 0;
+        maxScore = 0;
+
+        liveDb.textContent = "5.0";
+        liveScore.textContent = "500";
+        meter.style.width = "0%";
+
+        await countdownSequence();
+
+        await runMeasurement();
+
+        stopMicrophone();
+
+        showResult();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "マイクを使用できませんでした。\n\n" +
+            "・マイクの使用を許可してください\n" +
+            "・HTTPSまたはlocalhostで開いてください\n" +
+            "・ブラウザのマイク権限を確認してください"
+        );
+
+        stopMicrophone();
+        showScreen(topScreen);
+    }
+
+    startBtn.disabled = false;
+}
+
+
+/* =========================================================
+   カウントダウン
+========================================================= */
+
+function sleep(ms) {
+    return new Promise(resolve =>
+        setTimeout(resolve, ms)
+    );
+}
+
+async function countdownSequence() {
+
+    for (const number of ["3", "2", "1"]) {
+
+        measureStatus.innerHTML = "";
+
+        const el =
+            document.createElement("div");
+
+        el.className = "countdown";
+        el.textContent = number;
+
+        measureStatus.appendChild(el);
+
+        await sleep(850);
+    }
+
+    /*
+     * 叫べ！！！
+     */
+    measureStatus.innerHTML = "";
+
+    const shout =
+        document.createElement("div");
+
+    shout.className = "shout";
+    shout.textContent = "叫べ！！！";
+
+    measureStatus.appendChild(shout);
+
+    document.body.appendChild(
+        Object.assign(
+            document.createElement("div"),
+            { className: "flash" }
+        )
+    );
+
+    measureCard.classList.add("shake");
+
+    setTimeout(() => {
+        measureCard.classList.remove("shake");
+    }, 350);
+
+    await sleep(650);
+}
+
+
+/* =========================================================
+   3秒計測
+========================================================= */
+
+function runMeasurement() {
+
+    return new Promise(resolve => {
+
+        measuring = true;
+
+        const startTime =
+            performance.now();
+
+        function loop(now) {
+
+            if (!measuring) {
+                resolve();
+                return;
+            }
+
+            /*
+             * ★★★★★
+             * ここが実際の3秒計測ループ。
+             * RMS → 指定された確定式
+             */
+            const rms =
+                calculateRMS();
+
+            const result =
+                calculateGameDb(rms);
+
+            const currentdB =
+                result.db;
+
+            const currentScore =
+                result.score;
+
+            /*
+             * 最大値を保存。
+             */
+            if (currentdB > maxDb) {
+                maxDb = currentdB;
+            }
+
+            if (currentScore > maxScore) {
+                maxScore = currentScore;
+            }
+
+            /*
+             * リアルタイム表示。
+             */
+            liveDb.textContent =
+                currentdB.toFixed(1);
+
+            liveScore.textContent =
+                currentScore.toLocaleString();
+
+            /*
+             * 100dB = 100%表示。
+             * 100dB超は限界突破。
+             */
+            const meterPercent =
+                Math.min(
+                    125,
+                    currentdB
+                );
+
+            meter.style.width =
+                `${meterPercent}%`;
+
+            /*
+             * 100dBに近づくほど危険演出。
+             */
+            if (currentdB >= 80) {
+                measureCard.classList.add("hot");
+            } else {
+                measureCard.classList.remove("hot");
+            }
+
+            drawVisualizer();
+
+            if (
+                now - startTime >= 3000
+            ) {
+
+                measuring = false;
+                measureCard.classList.remove("hot");
+
+                resolve();
+
+                return;
+            }
+
+            requestAnimationFrame(loop);
+        }
+
+        requestAnimationFrame(loop);
+    });
+}
+
+
+/* =========================================================
+   結果表示
+========================================================= */
+
+function showResult() {
+
+    showScreen(resultScreen);
+
+    const score =
+        Math.floor(maxScore);
+
+    const db =
+        Number(maxDb.toFixed(1));
+
+    finalScore.textContent = "0";
+    finalDb.textContent = "0.0";
+
+    const title =
+        getTitle(db);
+
+    rankTitle.textContent = title;
+
+    // ランキング圏内かどうかはサーバー側で判定します。
+    saveArea.classList.remove("hidden");
+    nonRankShare.classList.add("hidden");
+
+    animateNumber(
+        finalScore,
+        0,
+        score,
+        950,
+        value =>
+            Math.floor(value).toLocaleString()
+    );
+
+    animateNumber(
+        finalDb,
+        0,
+        db,
+        950,
+        value =>
+            value.toFixed(1)
+    );
+
+    /*
+     * カウントアップ完了後に称号を再アニメーション。
+     */
+    setTimeout(() => {
+
+        rankTitle.classList.remove("rank-title");
+
+        void rankTitle.offsetWidth;
+
+        rankTitle.classList.add("rank-title");
+
+    }, 1000);
+}
+
+
+/* =========================================================
+   数字カウントアップ
+========================================================= */
+
+function animateNumber(
+    element,
+    from,
+    to,
+    duration,
+    formatter
+) {
+
+    const start =
+        performance.now();
+
+    function frame(now) {
+
+        const progress =
+            Math.min(
+                1,
+                (now - start) / duration
+            );
+
+        /*
+         * easeOutCubic
+         */
+        const eased =
+            1 - Math.pow(
+                1 - progress,
+                3
+            );
+
+        const value =
+            from +
+            (to - from) * eased;
+
+        element.textContent =
+            formatter(value);
+
+        if (progress < 1) {
+            requestAnimationFrame(frame);
+        }
+    }
+
+    requestAnimationFrame(frame);
+}
+
+
+/* =========================================================
+   Xシェア
+========================================================= */
+
+function buildShareText() {
+
+    const score =
+        Math.floor(maxScore);
+
+    const db =
+        Number(maxDb.toFixed(1));
+
+    const title =
+        getTitle(db);
+
+    /*
+     * 現在のゲームURL。
+     *
+     * file:// で直接開いた場合もそのURLが入りますが、
+     * Xから他の人にアクセスしてもらう用途では
+     * HTTPS上に公開することを推奨します。
+     */
+    const gameUrl =
+        window.location.href;
+
+    return [
+        "大声計測ランキングゲーム「KOMA/鼓膜ぶち破れ」で叫んだ！",
+        "",
+        "■計測結果",
+        `スコア：${score.toLocaleString()} 点`,
+        `音量：${db.toFixed(1)} dB`,
+        `称号：${title}`,
+        "",
+        SHARE_HASHTAGS,
+        gameUrl
+    ].join("\n");
+}
+
+function shareOnX() {
+
+    const text =
+        buildShareText();
+
+    /*
+     * XのIntent URL。
+     * URLSearchParamsで安全にURLエンコードします。
+     */
+    const params =
+        new URLSearchParams({
+            text: text
+        });
+
+    const xUrl =
+        "https://twitter.com/intent/post?" +
+        params.toString();
+
+    window.open(
+        xUrl,
+        "_blank",
+        "noopener,noreferrer"
+    );
+}
+
+
+/* =========================================================
+   イベント
+========================================================= */
+
+startBtn.addEventListener(
+    "click",
+    startGame
+);
+
+rankingBtn.addEventListener(
+    "click",
+    async () => {
+        rankingModal.classList.remove("hidden");
+        await renderRanking();
+    }
+);
+
+closeRanking.addEventListener(
+    "click",
+    () => {
+        rankingModal.classList.add("hidden");
+    }
+);
+
+rankingModal.addEventListener(
+    "click",
+    event => {
+        if (event.target === rankingModal) {
+            rankingModal.classList.add("hidden");
+        }
+    }
+);
+
+saveBtn.addEventListener(
+    "click",
+    async () => {
+
+        const name =
+            nameInput.value.trim() ||
+            "名無し";
+
+        saveBtn.disabled = true;
+        saveBtn.textContent = "保存中...";
+
+        const result = await saveRankingEntry(
+            name,
+            maxScore,
+            maxDb
+        );
+
+        saveBtn.disabled = false;
+        saveBtn.textContent = "ランキングに保存";
+
+        if (result.ok && result.accepted) {
+            saveArea.innerHTML = `
+                <div class="save-message">
+                    ★ RANKING SAVED ★<br>
+                    「${escapeHTML(name)}」として保存しました！<br>
+                    現在 ${Number(result.rank).toLocaleString()} 位
+                </div>
+            `;
+        } else if (result.ok && result.accepted === false) {
+            saveArea.innerHTML = `
+                <div class="save-message">
+                    ランキング圏外でした。<br>
+                    それでも挑戦は記録されています！
+                </div>
+            `;
+        } else {
+            saveArea.innerHTML = `
+                <div class="save-message">
+                    ランキング保存に失敗しました。<br>
+                    通信状態を確認して、もう一度お試しください。
+                </div>
+            `;
+        }
+
+        await renderRanking();
+    }
+);
+
+shareBtn.addEventListener(
+    "click",
+    shareOnX
+);
+
+shareBtn2.addEventListener(
+    "click",
+    shareOnX
+);
+
+retryBtn.addEventListener(
+    "click",
+    () => {
+        showScreen(topScreen);
+        nameInput.value = "";
+    }
+);
+
+
+/* =========================================================
+   HTMLエスケープ
+   保存完了表示用
+========================================================= */
+
+function escapeHTML(value) {
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+
+/* =========================================================
+   初期状態
+========================================================= */
+
+showScreen(topScreen);
+
+/*
+ * ブラウザによっては「ユーザー操作のないAudioContext開始」が
+ * ブロックされるため、AudioContext生成は
+ * ゲームスタートクリック後にのみ実行しています。
+ */
+</script>
+<!-- admax -->
+<script src="https://adm.shinobi.jp/s/36be902a0a9f0ca752517ca39c194ea6"></script>
+<!-- admax -->
+</body>
+</html>

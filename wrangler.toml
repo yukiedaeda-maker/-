@@ -1,0 +1,8 @@
+name = "koma-ranking"
+compatibility_date = "2026-08-31"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "koma-ranking"
+database_id = "YOUR_D1_DATABASE_ID"
+migrations_dir = "migrations"
